@@ -9,6 +9,8 @@ services:
       - VIRTUAL_HOST=matomo.example.com
     env_file:
       - ./db.env
+    volumes:
+      - /home/xxxx/config/matomo/web:/var/www/html
     networks:
       - proxy
       - matnet
@@ -22,15 +24,17 @@ services:
     command: --max-allowed-packet=64MB
     environment:
       - MYSQL_ROOT_PASSWORD=inventa
+    volumes:
+      - /home/xxxx/config/matomo/db:/var/lib/mysql
     env_file:
       - ./db.env
     networks:
-      - net
+      - matnet
     restart: unless-stopped
 
 networks:
   proxy:
-    external:
-      name: proxy
+    name: proxy
+    external: true
   matnet:
     driver: bridge
