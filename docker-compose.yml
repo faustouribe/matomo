@@ -1,33 +1,36 @@
-version: "3"
+version: "2"
 
 services:
-  db:
-    image: mariadb:10.11
-    command: --max-allowed-packet=64MB
-    restart: always
-    volumes:
-      - db:/var/lib/mysql:Z
-    environment:
-      - MYSQL_ROOT_PASSWORD=
-      - MARIADB_AUTO_UPGRADE=1
-      - MARIADB_DISABLE_UPGRADE_BACKUP=1
-    env_file:
-      - ./db.env
-
-  app:
-    image: matomo
-    restart: always
-    volumes:
-#     - ./config:/var/www/html/config:z
-#     - ./logs:/var/www/html/logs:z
-      - matomo:/var/www/html:z
-    environment:
-      - MATOMO_DATABASE_HOST=db
-    env_file:
-      - ./db.env
-    ports:
-      - 8080:80
-
-volumes:
-  db:
   matomo:
+    container_name: matomo
+    image: matomo
+    environment:
+      - MATOMO_DATABASE_HOST=matomo_db
+      - VIRTUAL_HOST=matomo.example.com
+    env_file:
+      - ./db.env
+    networks:
+      - proxy
+      - matnet
+    depends_on:
+      - matomo_db
+    restart: unless-stopped
+
+  matomo_db:
+    container_name: matomo_db
+    image: mariadb
+    command: --max-allowed-packet=64MB
+    environment:
+      - MYSQL_ROOT_PASSWORD=inventa
+    env_file:
+      - ./db.env
+    networks:
+      - net
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external:
+      name: proxy
+  matnet:
+    driver: bridge
